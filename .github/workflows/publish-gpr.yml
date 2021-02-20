@@ -1,4 +1,4 @@
-name: npm-publish
+name: npm-publish-gpr
 on:
   push:
     tags:
@@ -14,8 +14,6 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: '14.x'
-        registry-url: https://registry.npmjs.org/
-        scope: '@arch-inc'
     - name: Cache dependencies
       uses: actions/cache@v1
       with:
@@ -26,7 +24,9 @@ jobs:
     - run: npm ci
     - name: Build package
       run: npm run build
+    - name: Add .npmrc entry
+      run: |
+        echo "@arch-inc:registry=https://npm.pkg.github.com" > ~/gpr.npmrc \
+        echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/gpr.npmrc
     - name: Publish package
-      run: npm publish --access public
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+      run: npm --userconfig=~/gpr.npmrc publish
